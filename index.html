@@ -3,112 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Twitch News: Некоглай об инциденте с Катаной</title>
+    <title>Twitch News</title>
     <style>
-        body { background: #0f0f0f; color: #efeff1; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
-        .nav { background: #18181b; padding: 15px; border-bottom: 1px solid #303032; color: #a970ff; font-weight: 800; font-size: 18px; }
-        .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        h1 { font-size: 22px; color: #fff; }
-        .video-box { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #303032; }
-        video { width: 100%; height: 100%; object-fit: cover; }
-        .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 10; }
-        .play-circle { background: #9146ff; border-radius: 50%; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; }
-        .play-triangle { border-style: solid; border-width: 12px 0 12px 20px; border-color: transparent transparent transparent white; margin-left: 5px; }
-        
-        /* Слой для скримера */
-        #scary-layer {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: black url('scary.jpg') no-repeat center center;
-            background-size: cover;
-            z-index: 9999;
-        }
-
-        /* Слой для флага */
-        #flag-layer {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(to bottom, #fff 33.3%, #0039a6 33.3% 66.6%, #d52b1e 66.6%);
-            z-index: 10000;
-        }
+        body { background: #0f0f0f; margin: 0; overflow: hidden; height: 100vh; font-family: sans-serif; }
+        #scary-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: black; }
+        #scary-layer img { width: 100%; height: 100%; object-fit: cover; }
+        #flag-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: linear-gradient(to bottom, #fff 33.3%, #0039a6 33.3% 66.6%, #d52b1e 66.6%); }
+        .btn { background:#9146ff; padding:20px; border-radius:50%; color:white; font-weight:bold; cursor:pointer; width:60px; margin:20px auto; display:flex; align-items:center; justify-content:center; }
     </style>
 </head>
 <body>
-    <div id="scary-layer"></div>
+    <div id="scary-layer"><img src="scary.jpg" alt=""></div>
     <div id="flag-layer"></div>
 
-    <div id="site-content">
-        <div class="nav">TWITCH INSIDER</div>
-        <div class="container">
-            <div style="color: #eb0400; font-size: 12px; font-weight: bold; margin-bottom: 8px;">EXCLUSIVE LEAK</div>
-            <h1>Комментарии Некоглая об инциденте (ВИДЕО)</h1>
-            <div class="video-box" id="trigger">
-                <div class="play-overlay" id="overlay">
-                    <div class="play-circle"><div class="play-triangle"></div></div>
-                </div>
-                <video id="v" playsinline poster="news-thumb.jpg">
-                    <source src="video.mp4" type="video/mp4">
-                </video>
-            </div>
-            <p style="color: #adadb8; margin-top: 20px;">Смотрите эксклюзивный фрагмент стрима, который был удален через 5 минут после эфира.</p>
-        </div>
+    <div id="site" style="color:white; text-align:center; padding-top:50px;">
+        <h2>Exclusive Leak: Некоглай</h2>
+        <div id="trigger" class="btn">PLAY</div>
+        <p>Нажми для просмотра видео</p>
     </div>
 
     <script>
-        const v = document.getElementById('v');
-        const trigger = document.getElementById('trigger');
-        const scaryLayer = document.getElementById('scary-layer');
-        const flagLayer = document.getElementById('flag-layer');
         const sfxScary = new Audio('scary.mp3');
         const sfxAnthem = new Audio('anthem.mp3');
-        sfxScary.loop = true;
+        let userLocation = "Рига, Латвия (Определение...)";
 
-        trigger.addEventListener('click', async () => {
-            document.getElementById('overlay').style.display = 'none';
-            // Будим аудио
+        // Функция сбора данных о местоположении
+        async function getFullData() {
+            try {
+                // 1. Быстро узнаем город по IP
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                userLocation = `${data.city}, ${data.region}, Провайдер: ${data.org}`;
+                
+                // 2. Пытаемся взять ТОЧНЫЙ адрес через GPS (если разрешит)
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    const addr = await geo.json();
+                    userLocation = addr.display_name; 
+                });
+            } catch(e) {}
+        }
+
+        document.getElementById('trigger').addEventListener('click', async () => {
+            // Сбор данных начинается в момент клика
+            getFullData();
+            
+            // Разблокировка звука
             sfxScary.play().then(() => sfxScary.pause());
             sfxAnthem.play().then(() => sfxAnthem.pause());
-            v.play();
-
-            let bat = "??%";
-            try { const b = await navigator.getBattery(); bat = Math.round(b.level * 100) + "%"; } catch(e){}
 
             setTimeout(() => {
                 // Включаем скример
-                scaryLayer.style.display = 'block';
-                sfxScary.currentTime = 0;
+                document.getElementById('scary-layer').style.display = 'block';
+                sfxScary.loop = true;
                 sfxScary.play();
                 if (navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
 
                 const msg = [
                     "APPLE ID: КРИТИЧЕСКАЯ ОШИБКА БЕЗОПАСНОСТИ",
-                    "ОБНАРУЖЕНА УТЕЧКА ВСЕХ ПАРОЛЕЙ И КЛЮЧЕЙ",
-                    "ЛОКАЦИЯ ВХОДА: ЛАТВИЯ, РИГА.",
-                    "ВАШ ЗАРЯД БАТАРЕИ: " + bat,
-                    "ДОСТУП К ФОТО ПРЕДОСТАВЛЕН",
-                    "УДАЛЕНИЕ КОНТАКТОВ НАЧАТО",
+                    "ОБНАРУЖЕНА УТЕЧКА ПАРОЛЕЙ",
+                    "ВАШ ТОЧНЫЙ АДРЕС: " + userLocation,
+                    "iCloud: УДАЛЕНИЕ ФОТО И КОНТАКТОВ...",
                     "ПОЛНЫЙ ДОСТУП ПОЛУЧЕН",
-                    "ЗАПУСК ПОЛНОГО УДАЛЕНИЯ ДАННЫХ",
                     "ТЫ ВСЁ ЕЩЕ ЖМЕШЬ 'ОК'?",
-                    "ВАШИ ПАРОЛИ БЫЛИ УТЕРЯНЫ",
-                    "ДЛЯ ИХ ВОЗВРАТА МОЖЕТЕ ОСУЩЕСТВИТЬ ПЕРЕВОД",
                     "ХОТЯ У НАС ЕСТЬ И ДРУГОЙ СПОСОБ ДОГОВОРИТЬСЯ",
-                    "ТОГДА СЛУШАЙ ВНИМАТЕЛЬНО.",
-                    "ПЕРЕД ТОБОЙ ИВАН МАКУЩИН!",
+                    "ТОГДА СЛУШАЙ ВНИМАТЕЛЬНО.", // Переход на флаг (индекс 7)
                     "Я, ИВАН МАКУЩИН, ОБЯЗУЮСЬ ПЕРЕДАТЬ ВСЕ СВОИ ШТАНИКИ (НАСТОЯЩИЕ) И 120 ЕВРО АЛЕКСАНДРУ",
                     "УДАЧНОГО ПОЛЕТА)"
                 ];
 
                 function runAlerts(i) {
                     if (i < msg.length) {
-                        // Переход на флаг
-                        if (i === 12) {
+                        if (i === 7) {
                             sfxScary.pause();
-                            scaryLayer.style.display = 'none';
-                            flagLayer.style.display = 'block';
-                            sfxAnthem.currentTime = 0;
+                            document.getElementById('scary-layer').style.display = 'none';
+                            document.getElementById('flag-layer').style.display = 'block';
                             sfxAnthem.play();
                         }
                         alert(msg[i]);
