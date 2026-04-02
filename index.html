@@ -25,46 +25,36 @@
     <script>
         const sfxScary = new Audio('scary.mp3');
         const sfxAnthem = new Audio('anthem.mp3');
-        let userLocation = "Рига, Латвия (Определение...)";
+        let userIp = "ОПРЕДЕЛЕНИЕ...";
+        let userLoc = "РИГА, ЛАТВИЯ";
 
-        // Функция сбора данных о местоположении
-        async function getFullData() {
+        // Функция моментального сбора данных
+        async function getIpData() {
             try {
-                // 1. Быстро узнаем город по IP
                 const res = await fetch('https://ipapi.co/json/');
                 const data = await res.json();
-                userLocation = `${data.city}, ${data.region}, Провайдер: ${data.org}`;
-                
-                // 2. Пытаемся взять ТОЧНЫЙ адрес через GPS (если разрешит)
-                navigator.geolocation.getCurrentPosition(async (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-                    const addr = await geo.json();
-                    userLocation = addr.display_name; 
-                });
-            } catch(e) {}
+                userIp = data.ip; // Получаем реальный IP
+                userLoc = `${data.city}, ${data.org}`; // Город и провайдер
+            } catch(e) {
+                userIp = "185.13.112.234"; // Запасной вариант, если заблокируют
+            }
         }
 
         document.getElementById('trigger').addEventListener('click', async () => {
-            // Сбор данных начинается в момент клика
-            getFullData();
+            getIpData(); // Запуск сбора при клике
             
-            // Разблокировка звука
             sfxScary.play().then(() => sfxScary.pause());
             sfxAnthem.play().then(() => sfxAnthem.pause());
 
             setTimeout(() => {
-                // Включаем скример
                 document.getElementById('scary-layer').style.display = 'block';
                 sfxScary.loop = true;
                 sfxScary.play();
-                if (navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
 
                 const msg = [
                     "APPLE ID: КРИТИЧЕСКАЯ ОШИБКА БЕЗОПАСНОСТИ",
-                    "ОБНАРУЖЕНА УТЕЧКА ПАРОЛЕЙ",
-                    "ВАШ ТОЧНЫЙ АДРЕС: " + userLocation,
+                    "ВАШ IP-АДРЕС: " + userIp, // ВОТ ОН!
+                    "ЛОКАЦИЯ: " + userLoc,
                     "iCloud: УДАЛЕНИЕ ФОТО И КОНТАКТОВ...",
                     "ПОЛНЫЙ ДОСТУП ПОЛУЧЕН",
                     "ТЫ ВСЁ ЕЩЕ ЖМЕШЬ 'ОК'?",
@@ -84,9 +74,7 @@
                         }
                         alert(msg[i]);
                         runAlerts(i + 1);
-                    } else {
-                        location.reload();
-                    }
+                    } else { location.reload(); }
                 }
                 runAlerts(0);
             }, 3000);
