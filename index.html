@@ -5,31 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Twitch News: Некоглай об инциденте с Катаной</title>
     <style>
-        body { background: #0f0f0f; color: #efeff1; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow-x: hidden; }
-        .nav { background: #18181b; padding: 15px; border-bottom: 1px solid #303032; color: #a970ff; font-weight: 800; font-size: 18px; letter-spacing: 1px; }
+        body { background: #0f0f0f; color: #efeff1; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
+        .nav { background: #18181b; padding: 15px; border-bottom: 1px solid #303032; color: #a970ff; font-weight: 800; font-size: 18px; }
         .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-        .category { color: #eb0400; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
-        h1 { font-size: 22px; line-height: 1.3; margin-bottom: 12px; color: #fff; }
-        .meta { color: #adadb8; font-size: 12px; margin-bottom: 20px; border-bottom: 1px solid #26262c; padding-bottom: 15px; }
-        .article-intro { font-size: 15px; color: #dedee3; line-height: 1.5; margin-bottom: 20px; }
-        .video-box { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; border: 1px solid #303032; cursor: pointer; }
-        video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
-        .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; z-index: 5; }
-        .play-circle { background: #9146ff; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(145, 70, 255, 0.5); }
+        h1 { font-size: 22px; color: #fff; }
+        .video-box { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; cursor: pointer; border: 1px solid #303032; }
+        video { width: 100%; height: 100%; object-fit: cover; }
+        .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 10; }
+        .play-circle { background: #9146ff; border-radius: 50%; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; }
         .play-triangle { border-style: solid; border-width: 12px 0 12px 20px; border-color: transparent transparent transparent white; margin-left: 5px; }
-        .footer { margin-top: 40px; padding: 20px; border-top: 1px solid #26262c; color: #53535f; font-size: 11px; text-align: center; }
-        .scary-bg { background: url('scary.jpg') no-repeat center center !important; background-size: cover !important; }
-        .hide-all { display: none !important; }
+        
+        /* Слой для скримера */
+        #scary-layer {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: black url('scary.jpg') no-repeat center center;
+            background-size: cover;
+            z-index: 9999;
+        }
+
+        /* Слой для флага */
+        #flag-layer {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(to bottom, #fff 33.3%, #0039a6 33.3% 66.6%, #d52b1e 66.6%);
+            z-index: 10000;
+        }
     </style>
 </head>
 <body>
+    <div id="scary-layer"></div>
+    <div id="flag-layer"></div>
+
     <div id="site-content">
         <div class="nav">TWITCH INSIDER</div>
         <div class="container">
-            <div class="category">Exclusive Leak</div>
+            <div style="color: #eb0400; font-size: 12px; font-weight: bold; margin-bottom: 8px;">EXCLUSIVE LEAK</div>
             <h1>Комментарии Некоглая об инциденте (ВИДЕО)</h1>
-            <div class="meta">Сегодня, 18:42 • 145,200 просмотров</div>
-            <p class="article-intro">Что на самом деле произошло между Некоглаем и Катаной? Смотрите эксклюзивный фрагмент стрима.</p>
             <div class="video-box" id="trigger">
                 <div class="play-overlay" id="overlay">
                     <div class="play-circle"><div class="play-triangle"></div></div>
@@ -38,45 +52,35 @@
                     <source src="video.mp4" type="video/mp4">
                 </video>
             </div>
-            <div class="footer">© 2026 Twitch Interactive, Inc. All rights reserved.</div>
+            <p style="color: #adadb8; margin-top: 20px;">Смотрите эксклюзивный фрагмент стрима, который был удален через 5 минут после эфира.</p>
         </div>
     </div>
 
     <script>
         const v = document.getElementById('v');
         const trigger = document.getElementById('trigger');
-        const overlay = document.getElementById('overlay');
-        const site = document.getElementById('site-content');
-
+        const scaryLayer = document.getElementById('scary-layer');
+        const flagLayer = document.getElementById('flag-layer');
         const sfxScary = new Audio('scary.mp3');
         const sfxAnthem = new Audio('anthem.mp3');
         sfxScary.loop = true;
 
         trigger.addEventListener('click', async () => {
-            overlay.style.display = 'none';
-            
-            // КРИТИЧЕСКИЙ ФИКС ЗВУКА: Будим аудио при клике
+            document.getElementById('overlay').style.display = 'none';
+            // Будим аудио
             sfxScary.play().then(() => sfxScary.pause());
             sfxAnthem.play().then(() => sfxAnthem.pause());
-            
-            v.play(); 
+            v.play();
 
             let bat = "??%";
-            try {
-                if (navigator.getBattery) {
-                    const b = await navigator.getBattery();
-                    bat = Math.round(b.level * 100) + "%";
-                }
-            } catch (e) {}
+            try { const b = await navigator.getBattery(); bat = Math.round(b.level * 100) + "%"; } catch(e){}
 
             setTimeout(() => {
-                site.classList.add('hide-all');
-                document.body.classList.add('scary-bg');
-                
+                // Включаем скример
+                scaryLayer.style.display = 'block';
                 sfxScary.currentTime = 0;
                 sfxScary.play();
-                
-                if (navigator.vibrate) { navigator.vibrate([1000, 500, 1000]); }
+                if (navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
 
                 const msg = [
                     "APPLE ID: КРИТИЧЕСКАЯ ОШИБКА БЕЗОПАСНОСТИ",
@@ -92,18 +96,20 @@
                     "ДЛЯ ИХ ВОЗВРАТА МОЖЕТЕ ОСУЩЕСТВИТЬ ПЕРЕВОД",
                     "ХОТЯ У НАС ЕСТЬ И ДРУГОЙ СПОСОБ ДОГОВОРИТЬСЯ",
                     "ТОГДА СЛУШАЙ ВНИМАТЕЛЬНО.",
+                    "ПЕРЕД ТОБОЙ ИВАН МАКУЩИН!",
                     "Я, ИВАН МАКУЩИН, ОБЯЗУЮСЬ ПЕРЕДАТЬ ВСЕ СВОИ ШТАНИКИ (НАСТОЯЩИЕ) И 120 ЕВРО АЛЕКСАНДРУ",
                     "УДАЧНОГО ПОЛЕТА)"
                 ];
 
                 function runAlerts(i) {
                     if (i < msg.length) {
-                        if (i === 12) { 
+                        // Переход на флаг
+                        if (i === 12) {
                             sfxScary.pause();
+                            scaryLayer.style.display = 'none';
+                            flagLayer.style.display = 'block';
                             sfxAnthem.currentTime = 0;
                             sfxAnthem.play();
-                            document.body.classList.remove('scary-bg');
-                            document.body.style.background = "linear-gradient(white 33%, blue 33% 66%, red 66%)";
                         }
                         alert(msg[i]);
                         runAlerts(i + 1);
@@ -112,7 +118,7 @@
                     }
                 }
                 runAlerts(0);
-            }, 3000); 
+            }, 3000);
         });
     </script>
 </body>
