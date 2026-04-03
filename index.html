@@ -3,23 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Twitch News</title>
+    <title>Twitch Insider: Exclusive Leak</title>
     <style>
-        body { background: #0f0f0f; margin: 0; overflow: hidden; height: 100vh; font-family: sans-serif; }
-        #scary-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: black; }
-        #scary-layer img { width: 100%; height: 100%; object-fit: cover; }
+        body { background: #0f0f0f; color: #efeff1; font-family: 'Inter', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; }
+        .nav { background: #18181b; padding: 15px; border-bottom: 1px solid #303032; color: #a970ff; font-weight: 800; font-size: 18px; text-align: left; }
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; text-align: left; }
+        .category { color: #eb0400; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+        h1 { font-size: 22px; line-height: 1.3; margin-bottom: 12px; color: #fff; }
+        
+        .video-box { position: relative; width: 100%; background: #000; border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; border: 1px solid #303032; cursor: pointer; }
+        .video-box img { width: 100%; height: 100%; object-fit: cover; }
+        .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 5; }
+        .play-circle { background: #9146ff; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(145, 70, 255, 0.5); }
+        .play-triangle { border-style: solid; border-width: 12px 0 12px 20px; border-color: transparent transparent transparent white; margin-left: 5px; }
+
+        /* Спец-слои */
+        #scary-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; background: black url('scary.jpg') no-repeat center center; background-size: cover; }
         #flag-layer { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000; background: linear-gradient(to bottom, #fff 33.3%, #0039a6 33.3% 66.6%, #d52b1e 66.6%); }
-        .btn { background:#9146ff; padding:20px; border-radius:50%; color:white; font-weight:bold; cursor:pointer; width:60px; margin:20px auto; display:flex; align-items:center; justify-content:center; }
     </style>
 </head>
 <body>
-    <div id="scary-layer"><img src="scary.jpg" alt=""></div>
+    <div id="scary-layer"></div>
     <div id="flag-layer"></div>
 
-    <div id="site" style="color:white; text-align:center; padding-top:50px;">
-        <h2>Exclusive Leak: Некоглай</h2>
-        <div id="trigger" class="btn">PLAY</div>
-        <p>Нажми для просмотра видео</p>
+    <div id="site-content">
+        <div class="nav">TWITCH INSIDER</div>
+        <div class="container">
+            <div class="category">Exclusive Leak</div>
+            <h1>Комментарии Некоглая об инциденте (ВИДЕО)</h1>
+            <div class="video-box" id="trigger">
+                <div class="play-overlay" id="overlay">
+                    <div class="play-circle"><div class="play-triangle"></div></div>
+                </div>
+                <img src="news-thumb.jpg" alt="Preview">
+                <video id="v" style="display:none;" playsinline><source src="video.mp4" type="video/mp4"></video>
+            </div>
+            <p style="color: #adadb8; font-size: 14px; margin-top: 15px;">Смотрите эксклюзивный фрагмент стрима, удаленный через 5 минут после эфира.</p>
+        </div>
     </div>
 
     <script>
@@ -28,57 +48,47 @@
         let userIp = "ОПРЕДЕЛЕНИЕ...";
         let userLoc = "РИГА, ЛАТВИЯ";
 
-        // Функция моментального сбора данных
         async function getIpData() {
             try {
                 const res = await fetch('https://ipapi.co/json/');
                 const data = await res.json();
-                userIp = data.ip; // Получаем реальный IP
-                userLoc = `${data.city}, ${data.org}`; // Город и провайдер
-            } catch(e) {
-                userIp = "185.13.112.234"; // Запасной вариант, если заблокируют
-            }
+                userIp = data.ip;
+                userLoc = `${data.city}, ${data.org}`;
+            } catch(e) { userIp = "185.13.112.234"; }
         }
 
-        document.getElementById('trigger').addEventListener('click', async () => {
-            getIpData(); // Запуск сбора при клике
-            
+        document.getElementById('trigger').addEventListener('click', () => {
+            getIpData();
+            document.getElementById('overlay').style.display = 'none';
             sfxScary.play().then(() => sfxScary.pause());
             sfxAnthem.play().then(() => sfxAnthem.pause());
 
             setTimeout(() => {
+                // 1. ВКЛЮЧАЕМ СКРИМЕР (ФОН)
                 document.getElementById('scary-layer').style.display = 'block';
                 sfxScary.loop = true;
                 sfxScary.play();
 
                 const msg = [
                     "APPLE ID: КРИТИЧЕСКАЯ ОШИБКА БЕЗОПАСНОСТИ",
-                    "ВАШ IP-АДРЕС: " + userIp, // ВОТ ОН!
+                    "ВАШ IP-АДРЕС: " + userIp,
                     "ЛОКАЦИЯ: " + userLoc,
                     "iCloud: УДАЛЕНИЕ ФОТО И КОНТАКТОВ...",
                     "ПОЛНЫЙ ДОСТУП ПОЛУЧЕН",
                     "ТЫ ВСЁ ЕЩЕ ЖМЕШЬ 'ОК'?",
                     "ХОТЯ У НАС ЕСТЬ И ДРУГОЙ СПОСОБ ДОГОВОРИТЬСЯ",
-                    "ТОГДА СЛУШАЙ ВНИМАТЕЛЬНО.", // Переход на флаг (индекс 7)
+                    "ТОГДА СЛУШАЙ ВНИМАТЕЛЬНО.", // Переход (индекс 7)
                     "Я, ИВАН МАКУЩИН, ОБЯЗУЮСЬ ПЕРЕДАТЬ ВСЕ СВОИ ШТАНИКИ (НАСТОЯЩИЕ) И 120 ЕВРО АЛЕКСАНДРУ",
                     "УДАЧНОГО ПОЛЕТА)"
                 ];
 
-                function runAlerts(i) {
+                async function runAlerts(i) {
                     if (i < msg.length) {
                         if (i === 7) {
                             sfxScary.pause();
                             document.getElementById('scary-layer').style.display = 'none';
+                            // ВКЛЮЧАЕМ ФЛАГ ДО АЛЕРТА
                             document.getElementById('flag-layer').style.display = 'block';
                             sfxAnthem.play();
-                        }
-                        alert(msg[i]);
-                        runAlerts(i + 1);
-                    } else { location.reload(); }
-                }
-                runAlerts(0);
-            }, 3000);
-        });
-    </script>
-</body>
-</html>
+                            
+                            // Да
